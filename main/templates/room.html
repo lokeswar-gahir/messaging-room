@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block styles %}
+<style>
+  .custom-links:hover {
+      cursor: pointer;
+  }
+</style>
+{% endblock styles %}
+
+{% block content %}
+<div class="mb-5">
+  {% if open_status %}
+  You are inside room: <a href="{% url 'main:room' link=link %}">{{ request.get_host }}{{ request.path }}</a> | 
+  {% if room_creater %}
+    <a href="{% url 'main:closeRoom' link=link %}">close room</a>
+  {% endif %}
+  {% else %}
+  
+  You are inside room: {{ request.get_host }}{{ request.path }}<br/>
+  This room is closed by the creater.
+  {% endif %}
+  <br/>Total Verified Users: <b>{{ total_users }}</b>
+</div>
+
+{% if open_status %}
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form.visible_fields %}
+      <div class="form-group mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+        {{ field|add_class:'form-control'|attr:"placeholder:Type a message" }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+  <hr/>
+{% endif %}
+
+{% if fetched_messages %}
+  {% for message in fetched_messages %}
+
+  {% if message.ip_address == client_ip %}
+  <div class="mb-3" style="text-align: right;">
+  {% else %}
+  <div class="mb-3">
+  {% endif %}
+      <small class="text-muted">{{ message.ip_address }}<br/>
+      {{ message.updated_at }}</small><br/>
+      <div>
+        <b id="message-{{ message.id }}">{{ message.message }}</b>
+        {% if message.ip_address == client_ip and open_status %}
+        <form action="{% url 'main:updateMessage' link=link %}" method="post" style="display:none;" id="message-input-{{ message.id }}">
+          {% csrf_token %}
+          <input type="text" value="{{ message.message }}" name="updatedMessage" required>
+          <button type="submit" class="btn btn-warning px-2 py-1 m-0" name="messageId" value="{{ message.id }}">Update</button>
+        </form>
+        <a class="custom-links" onclick='enableEditMode({{ message.id }})' id="editBtn-{{ message.id }}">Edit</a>
+        <a class="custom-links" style="display:none;" onclick='disableEditMode({{ message.id }})' id="cancelBtn-{{ message.id }}">Cancel</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+  
+  
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  function enableEditMode(msgId){
+    const msg = document.querySelector(`#message-${msgId}`)
+    const msgInput = document.querySelector(`#message-input-${msgId}`)
+    const editBtn = document.querySelector(`#editBtn-${msgId}`)
+    const cancelBtn = document.querySelector(`#cancelBtn-${msgId}`)
+
+    msg.style.display='none'
+    editBtn.style.display='none'
+    cancelBtn.style.display='inline'
+    msgInput.style.display='inline'
+  }
+  
+  function disableEditMode(msgId){
+    const msg = document.querySelector(`#message-${msgId}`)
+    const msgInput = document.querySelector(`#message-input-${msgId}`)
+    const editBtn = document.querySelector(`#editBtn-${msgId}`)
+    const cancelBtn = document.querySelector(`#cancelBtn-${msgId}`)
+
+    msg.style.display='inline'
+    editBtn.style.display='inline'
+    cancelBtn.style.display='none'
+    msgInput.style.display='none'
+  }
+</script>
+{% endblock scripts %}
