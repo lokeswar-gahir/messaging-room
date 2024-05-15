@@ -45,7 +45,7 @@ class Room(CreateView):
             else:
                 return HttpResponse('Room does not exist !!!')
 
-            if get_ip(self.request) not in verified_ips.split('+'):
+            if get_ip(self.request) not in verified_ips.split(' '):
                 messages.info(request, 'you are not verified')
                 print(get_ip(self.request), "IP is not registered.")
                 return redirect(reverse('main:verifyRoomEntry', kwargs={'link': self.current_link}))
@@ -67,7 +67,7 @@ class Room(CreateView):
         else:
             context['room_creater'] = False
         context['open_status'] = self.current_room.is_open
-        context['total_users'] = len(self.current_room.verified_ips.split("+"))
+        context['total_users'] = len(self.current_room.verified_ips.split(" "))
         return context
     
     def form_valid(self, form):
@@ -110,8 +110,8 @@ def verifiedRoomEntry(request, link):
     if room_obj:
         if room_obj[0].link_password == room_pass:
             verified_ips = room_obj[0].verified_ips
-            if get_ip(request) not in verified_ips.split('+'):
-                room_obj[0].verified_ips = room_obj[0].verified_ips+'+'+str(get_ip(request))
+            if get_ip(request) not in verified_ips.split(' '):
+                room_obj[0].verified_ips = room_obj[0].verified_ips+' '+str(get_ip(request))
                 room_obj[0].save()
                 print(room_obj[0].verified_ips, 'added new verified IP address')
             return redirect(reverse('main:room', kwargs={'link': link}))
