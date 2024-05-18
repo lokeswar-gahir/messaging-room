@@ -5,10 +5,11 @@ app_name='main'
 
 urlpatterns = [
     path('', Index.as_view(), name='index'),
+    path('delete-room/', deleteRoom, name='deleteRoom'),
+    path("delete-message/", deleteMessage, name="deleteMessage"),
     path('<slug:link>/', Room.as_view(), name='room'),
     path('close/<slug:link>/', closeRoom, name='closeRoom'),
     path('verify/<slug:link>/', verifyRoomEntry, name='verifyRoomEntry'),
     path('verified/<slug:link>/', verifiedRoomEntry, name='verifiedRoomEntry'),
     path('update/<slug:link>/', updateMessage, name='updateMessage'),
-    
 ]

@@ -116,7 +116,7 @@ def verifiedRoomEntry(request, link):
                 print(room_obj[0].verified_ips, 'added new verified IP address')
             return redirect(reverse('main:room', kwargs={'link': link}))
         else:
-            messages.error(request, 'Incorrect Password !!!')
+            messages.info(request, 'Incorrect Password !!!')
             return redirect(reverse('main:verifyRoomEntry', kwargs={'link': link}))
     else:
         return HttpResponse('Room does not exist !!!')
@@ -135,3 +135,31 @@ def updateMessage(request, link):
         return redirect(reverse_lazy('main:room', kwargs={'link': link}))
     else:
         return HttpResponse('Method not allowed !!!')
+    
+def deleteRoom(request):
+    delete_request_sender = request.POST.get('sender')
+    if delete_request_sender=='byAdmin007':
+        delete_room_id = request.POST.get('deleteRoomId')
+        room_obj = RoomLink.objects.filter(id=delete_room_id)
+        if room_obj:
+            room_obj[0].delete()
+            messages.info(request, f'Room({delete_room_id}, {room_obj[0].link}) deleted successfully.')
+            return redirect(reverse('cadmin:cadmin_dashboard'))
+        else:
+            return HttpResponse('Room does not exist !!!')
+    else:
+        return HttpResponse('Access Denied !!!')
+
+def deleteMessage(request):
+    delete_request_sender = request.POST.get('sender')
+    if delete_request_sender=='byAdmin007':
+        delete_message_id = request.POST.get('deleteMessageId')
+        message_obj = Messages.objects.filter(id=delete_message_id)
+        if message_obj:
+            message_obj[0].delete()
+            messages.info(request, f'Message({delete_message_id}, \'{message_obj[0].message})\' deleted successfully.')
+            return redirect(reverse('cadmin:cadmin_dashboard'))
+        else:
+            return HttpResponse('Message does not exist !!!') 
+    else:
+        return HttpResponse('Access Denied !!!')
