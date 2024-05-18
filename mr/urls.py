@@ -19,7 +19,8 @@ from django.urls import path, include
 from main.views import Index
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
+    path("a/", include('administration.urls'), name="cadmin"),
     path("", Index.as_view(), name="index"),
     path('main/', include('main.urls', namespace='main')),
 ]

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h3>Verify Admin</h3>
+  <form action="{% url 'cadmin:cadmin_dashboard'%}" method="post">
+    {% csrf_token %}
+    <div class="form-group mb-3">
+        <label for="adminPanel" class="form-label">Admin</label>
+        <input type="text" class="form-control" name="AdminPanel" value="Admin" id="adminPanel" disabled>
+    </div>
+    <div class="form-group mb-3">
+        <label for="adminPass" class="form-label">Admin PassKey</label>
+        <input type="password" class="form-control" name="adminKey" id="adminPass" autofocus>
+    </div>
+    <button type="submit" class="btn btn-primary">Verify</button>
+  </form>
+{% endblock content %}

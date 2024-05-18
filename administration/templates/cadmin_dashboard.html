@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+  .messages {
+    margin-top: 30px;
+  }
+
+  hr {
+    margin-bottom: 0;
+  }
+</style>
+{% endblock styles %}
+
+{% block content %}
+This is cadmin dashboard page.
+<div class="rooms">
+  <h3>Rooms</h3>
+  <hr>
+  {% if room_data %}
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        <th scope="col">Rooms</th>
+        <th scope="col">Link</th>
+        <th scope="col">Message</th>
+        <th scope="col">Pass key</th>
+        <th scope="col">Open Status</th>
+        <th scope="col">Verified IPs</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for room in room_data %}
+      <tr>
+        <th scope="row">{{ room.id }}</th>
+        <td>{{ room.ip_address }}</td>
+        <td><a href="{% url 'main:room' link=room.link %}">{{ room.link }}</a></td>
+        <td>{{ room.first_message }}</td>
+        <td>'{{ room.link_password }}'</td>
+        <td>{{ room.is_open }}</td>
+        <td>{{ room.verified_ips }}</td>
+        <td>
+            <button class='btn btn-outline-danger m-1' data-bs-toggle="modal" data-bs-target="#confirmMessageModal"
+            data-bs-message="{{ room.link }}" data-message-id="{{ room.id }}" data-object-type="room">Delete</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>There is no Room created yet.</p>
+  {% endif %}
+</div>
+
+<div class="messages">
+  <h3>Recorded Messages</h3>
+  <hr>
+  {% if messages_data %}
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th scope="col">IP address</th>
+        <th scope="col">Room ID</th>
+        <th scope="col">Message</th>
+        <th scope="col">Recored at</th>
+        <th scope="col">updated at</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for message in messages_data %}
+      <tr>
+        <td>{{ message.ip_address }}</td>
+        <td>{{ message.room_link.id }}</td>
+        <td>{{ message.message }}</td>
+        <td>{{ message.recorded_at}}</td>
+        <td>{{ message.updated_at }}</td>
+        <td>
+          <button class='btn btn-outline-danger m-1' data-bs-toggle="modal" data-bs-target="#confirmMessageModal" data-bs-message="{{ message.message }}" data-message-id="{{ message.id }}" data-object-type="message">Delete</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>There is no Message sent yet.</p>
+  {% endif %}
+</div>
+
+<!-- Confirm Message Modal -->
+<div class="modal fade" id="confirmMessageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Message Title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">Message:</label>
+            <input type="text" class="form-control" id="recipient-name" disabled>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <form id="cnfDeleteModalForm" method="post">
+            {% csrf_token %}
+            <input type="text" name="sender" value="byAdmin007" hidden>
+            <button type="submit" id="confirmDelete" class='btn btn-danger m-1'>Confirm Delete</button>
+          </form>
+        </div>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  const confirmMessageModal = document.getElementById('confirmMessageModal')
+  const messageDeleteURI = "{% url 'main:deleteMessage' %}"
+  const roomDeleteURI = "{% url 'main:deleteRoom' %}"
+  if (confirmMessageModal) {
+    confirmMessageModal.addEventListener('show.bs.modal', event => {
+      const button = event.relatedTarget
+      const message = button.getAttribute('data-bs-message')
+      const deleteMessageId = button.getAttribute('data-message-id')
+      const objectType = button.getAttribute('data-object-type')
+      
+      const modalTitle = confirmMessageModal.querySelector('.modal-title')
+      const modalBodyLabel = confirmMessageModal.querySelector('.modal-body label')
+      const modalBodyInput = confirmMessageModal.querySelector('.modal-body input')
+      const confirmDelete = confirmMessageModal.querySelector('.modal-footer #confirmDelete')
+      const confirmForm = confirmMessageModal.querySelector('.modal-footer #cnfDeleteModalForm')
+      
+      modalBodyInput.value = message
+      
+      if(objectType=='message'){
+        modalTitle.textContent = `Delete this Message?`
+        modalBodyLabel.textContent = `Message:`
+        confirmForm.setAttribute('action', messageDeleteURI)
+        confirmDelete.setAttribute('name', 'deleteMessageId')
+        confirmDelete.setAttribute('value', deleteMessageId)
+
+      }
+      else if(objectType=='room'){
+        modalTitle.textContent = `Delete this Room?`
+        modalBodyLabel.textContent = `Room:`
+        confirmForm.setAttribute('action', roomDeleteURI)
+        confirmDelete.setAttribute('name', 'deleteRoomId')
+        confirmDelete.setAttribute('value', deleteMessageId)
+      }
+
+      
+    })
+  }
+</script>
+{% endblock scripts %}
