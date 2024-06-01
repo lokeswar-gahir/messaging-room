@@ -5,13 +5,21 @@
   .custom-links:hover {
       cursor: pointer;
   }
+  .align-right{
+    text-align: right;
+  }
+  .copy-icon:hover{
+    cursor: pointer;
+  }
 </style>
 {% endblock styles %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <div class="mb-5">
+  
   {% if open_status %}
-  You are inside room: <a href="{% url 'main:room' link=link %}">{{ request.get_host }}{{ request.path }}</a> | 
+  You are inside room: <a href="{% url 'main:room' link=link %}">{{ request.get_host }}{{ request.path }}</a> <span class="copy-icon" onclick="copyToClipboard('{{ request.get_host }}{{ request.path }}')"><i class="fa fa-copy" style="color: blue;" title="Copy"></i></span> | 
   {% if room_creater %}
     <a href="{% url 'main:closeRoom' link=link %}">close room</a>
   {% endif %}
@@ -20,28 +28,23 @@
   You are inside room: {{ request.get_host }}{{ request.path }}<br/>
   This room is closed by the creater.
   {% endif %}
-  <br/>Total Verified Users: <b>{{ total_users }}</b>
+  <br/>Total Verified Users: <b id="total-users">{{ total_users }}</b>
 </div>
 
 {% if open_status %}
-  <form method="post">
-    {% csrf_token %}
-    {% for field in form.visible_fields %}
-      <div class="form-group mb-3">
-        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-        {{ field|add_class:'form-control'|attr:"placeholder:Type a message"|attr:'autofocus:true' }}
-      </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-primary">Send</button>
-  </form>
+  <input type="text" id="inputMessage" class="form-control mb-3" placeholder="Type a message" autofocus>
+  <button id="sendSocket" class="btn btn-primary">Send</button>
+  <div id="disconnected-msg-box"></div>
   <hr/>
 {% endif %}
 
+
+<div class="message-box">
 {% if fetched_messages %}
   {% for message in fetched_messages %}
 
   {% if message.ip_address == client_ip %}
-  <div class="mb-3" style="text-align: right;">
+  <div class="mb-3 align-right">
   {% else %}
   <div class="mb-3">
   {% endif %}
@@ -59,11 +62,10 @@
         <a class="custom-links" style="display:none;" onclick='disableEditMode({{ message.id }})' id="cancelBtn-{{ message.id }}">Cancel</a>
         {% endif %}
       </div>
-    </div>
+  </div>
   {% endfor %}
 {% endif %}
-  
-  
+</div>
 {% endblock content %}
 
 {% block scripts %}
@@ -91,5 +93,82 @@
     cancelBtn.style.display='none'
     msgInput.style.display='none'
   }
+
+
+  const ws = new WebSocket('ws://'+ window.location.host + '/ws/ac/' + '{{ link }}/')
+  ws.onopen = () =>{
+    console.log('Socket Connected.')
+  }
+  
+  ws.onmessage = (event) =>{
+    messageBundle = JSON.parse(event.data)
+    totalUsers = document.querySelector('#total-users')
+    totalUsers.innerHTML = messageBundle.total_users
+    msgBox = document.querySelector('.message-box')
+    newMessage = document.createElement('div')
+    
+    const d = new Date()
+    const month = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+    
+    newMessage.innerHTML = `
+    <small class="text-muted">${messageBundle.sender_ip}<br/>
+    ${month[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${d.getHours() % 12 || 12}:${d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()} ${(d.getHours() >= 12) ? "p.m." : "a.m."}</small><br/>
+    `
+    if(messageBundle.sender_ip == '{{ client_ip }}'){
+      newMessage.setAttribute('class', 'mb-3 align-right')
+      newMessage.innerHTML +=`
+    <div>
+      <b id="message-${messageBundle.message_id}">${messageBundle.msg}</b>
+      <form action="{% url 'main:updateMessage' link=link %}" method="post" style="display:none;" id="message-input-${messageBundle.message_id}">
+          {% csrf_token %}
+          <input type="text" value="${messageBundle.msg}" name="updatedMessage" required>
+          <button type="submit" class="btn btn-warning px-2 py-1 m-0" name="messageId" value="${messageBundle.message_id}">Update</button>
+      </form>
+        <a class="custom-links" onclick='enableEditMode(${messageBundle.message_id})' id="editBtn-${messageBundle.message_id}">Edit</a>
+        <a class="custom-links" style="display:none;" onclick='disableEditMode(${messageBundle.message_id})' id="cancelBtn-${messageBundle.message_id}">Cancel</a>
+    </div>`
+    }
+    else{
+      newMessage.setAttribute('class', 'mb-3')
+      newMessage.innerHTML +=`<div><b id="message-${messageBundle.message_id}">${messageBundle.msg}</b></div>`
+    }
+    msgBox.insertBefore(newMessage, msgBox.firstChild)
+  }
+  
+  ws.onclose = (event) =>{
+    console.log('Socket closed.')
+    inputMessage = document.querySelector('#inputMessage')
+    disconnectedMsgBox = document.querySelector('#disconnected-msg-box')
+
+    inputMessage.value=''
+    inputMessage.setAttribute('disabled', true)
+    disconnectedMsgBox.innerText = 'Socket disconnected !!!'
+  }
+
+  const sendbtn = document.querySelector('#sendSocket')
+  sendbtn.addEventListener('click',()=>{
+    inputMessage = document.querySelector('#inputMessage')
+    if (inputMessage.value==''){
+      alert('message cannot be empty !!!')
+    }
+    else{
+      ws.send(JSON.stringify({
+        'sender_ip': '{{ client_ip }}',
+        'msg': inputMessage.value
+      }))
+      inputMessage.value=''
+    }
+  })
+
+  function copyToClipboard(text) {
+    const icon = document.querySelector('.copy-icon')
+    icon.innerHTML = '<i class="fa fa-check-square" style="color: limegreen;" title="Copied"></i>'
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+}
 </script>
 {% endblock scripts %}
