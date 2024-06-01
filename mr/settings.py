@@ -31,15 +31,15 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')
 
-CSRF_TRUSTED_ORIGINS = ['http://'+os.getenv('ALLOWED_HOSTS')+':10000',]
+CSRF_TRUSTED_ORIGINS = ['https://messaging-room.onrender.com','https://*.127.0.0.1']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(" ")
-CORS_ORIGIN_WHITELIST = ['http://'+os.getenv('ALLOWED_HOSTS')+':10000',]
 
 
 # Application definition
 
 INSTALLED_APPS = [
     'channels',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
