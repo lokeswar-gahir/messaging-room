@@ -111,7 +111,7 @@ def verifiedRoomEntry(request, link):
         if room_obj[0].link_password == room_pass:
             verified_ips = room_obj[0].verified_ips
             if get_ip(request) not in verified_ips.split(' '):
-                room_obj[0].verified_ips = room_obj[0].verified_ips+' '+str(get_ip(request))
+                room_obj[0].verified_ips = str.strip(room_obj[0].verified_ips+' '+str(get_ip(request)))
                 room_obj[0].save()
                 print(room_obj[0].verified_ips, 'added new verified IP address')
             return redirect(reverse('main:room', kwargs={'link': link}))

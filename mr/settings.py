@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv('.env')
+# load_dotenv('.env')
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -133,3 +133,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(os.environ.get('REDIS_CONN_STRING'))]
+        },
+    },
+}
