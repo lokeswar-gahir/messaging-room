@@ -1,3 +1,8 @@
+import os
+import django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproj.settings")
+django.setup()
+
 from channels.consumer import SyncConsumer, AsyncConsumer
 from channels.exceptions import StopConsumer
 from json import dumps, loads
