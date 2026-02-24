@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.utils.crypto import get_random_string
 from .utils import get_ip
 from django.contrib import messages
+from django.http import JsonResponse
 # Create your views here.
 
 class Index(CreateView):
@@ -15,7 +16,7 @@ class Index(CreateView):
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.ip_address = get_ip(self.request)
-        self.object.link = get_random_string(23)
+        self.object.link = get_random_string(6)
         self.object.verified_ips = self.object.ip_address
 
         self.object.save()
@@ -127,7 +128,8 @@ def updateMessage(request, link):
         updated_msg = request.POST.get('updatedMessage')
 
         msg_obj = Messages.objects.filter(id= update_msg_id).first()
-        if msg_obj.message != updated_msg:
+        requester_ip=get_ip(request)
+        if msg_obj.message != updated_msg and msg_obj.ip_address==requester_ip:
             msg_obj.message = updated_msg
             msg_obj.save()
             print(f'Message updated successfully.({msg_obj.id})')
@@ -163,3 +165,10 @@ def deleteMessage(request):
             return HttpResponse('Message does not exist !!!') 
     else:
         return HttpResponse('Access Denied !!!')
+def getVerifiedIps(request, link):
+    # print(get_ip(request))
+    room_obj = RoomLink.objects.filter(link=link).first()
+    if room_obj.ip_address == get_ip(request):
+        return JsonResponse({"verifiedIps": room_obj.verified_ips.split(" ")})
+    else:
+        return JsonResponse({"error": "permission denied", "description": 'you are not the owner of this room'})

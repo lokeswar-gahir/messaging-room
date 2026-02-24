@@ -20,15 +20,22 @@
   
   {% if open_status %}
   You are inside room: <a href="{% url 'main:room' link=link %}">{{ request.get_host }}{{ request.path }}</a> <span class="copy-icon" onclick="copyToClipboard('{{ request.get_host }}{{ request.path }}')"><i class="fa fa-copy" style="color: blue;" title="Copy"></i></span> | 
-  {% if room_creater %}
-    <a href="{% url 'main:closeRoom' link=link %}">close room</a>
-  {% endif %}
+    {% if room_creater %}
+      <a href="{% url 'main:closeRoom' link=link %}">close room</a>
+    {% endif %}
   {% else %}
-  
-  You are inside room: {{ request.get_host }}{{ request.path }}<br/>
-  This room is closed by the creater.
+    You are inside room: {{ request.get_host }}{{ request.path }}<br/>
+    This room is closed by the creater.
   {% endif %}
-  <br/>Total Verified Users: <b id="total-users">{{ total_users }}</b>
+  <br/>
+      <p>
+        Total Verified Users: <b id="total-users">{{ total_users }}</b> |
+        {% if room_creater %}
+        <button type="button" id="getVerifiedIpsBtn" class="btn" style="color:blue;">Show Users</button>
+        {% endif %}
+        <br>
+        <div id="getVerifiedIpsMsgBox"></div>
+      </p>
 </div>
 
 {% if open_status %}
@@ -70,6 +77,8 @@
 
 {% block scripts %}
 <script>
+{% if open_status %}
+
   function enableEditMode(msgId){
     const msg = document.querySelector(`#message-${msgId}`)
     const msgInput = document.querySelector(`#message-input-${msgId}`)
@@ -170,5 +179,25 @@
     document.execCommand('copy');
     document.body.removeChild(textarea);
 }
+
+{% endif %}
+{% if room_creater %}
+    const getIpBtn = document.querySelector('#getVerifiedIpsBtn')
+    getIpBtn.addEventListener('click', async ()=>{
+      const getIpBox = document.querySelector('#getVerifiedIpsMsgBox')
+      const ipResponse = await fetch("{% url 'main:getVerifiedIps' link=link %}")
+      const ipdata = await ipResponse.json()
+      if(ipdata.verifiedIps){
+        let VerifiedIpHTML = ""
+        ipdata.verifiedIps.forEach(element => {
+          VerifiedIpHTML += `<b>${element}</b><br>`
+        });
+        getIpBox.innerHTML = VerifiedIpHTML
+      }
+      else{
+        getIpBox.innerText=JSON.stringify(ipdata)
+      }
+    })
+  {% endif %}
 </script>
 {% endblock scripts %}

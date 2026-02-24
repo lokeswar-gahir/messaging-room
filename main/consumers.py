@@ -1,6 +1,6 @@
 import os
 import django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "myproj.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mr.settings")
 django.setup()
 
 from channels.consumer import SyncConsumer, AsyncConsumer

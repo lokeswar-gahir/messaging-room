@@ -12,4 +12,5 @@ urlpatterns = [
     path('verify/<slug:link>/', verifyRoomEntry, name='verifyRoomEntry'),
     path('verified/<slug:link>/', verifiedRoomEntry, name='verifiedRoomEntry'),
     path('update/<slug:link>/', updateMessage, name='updateMessage'),
+    path('get-verified-ips/<slug:link>/', getVerifiedIps, name='getVerifiedIps'),
 ]
