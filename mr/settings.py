@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')
 
-CSRF_TRUSTED_ORIGINS = os.getenv('ALLOWED_HOSTS').split(" ") # ['https://messaging-room.onrender.com','https://*.127.0.0.1']
+CSRF_TRUSTED_ORIGINS = 'https://' + os.getenv('ALLOWED_HOSTS').split(" ")[0] # ['https://messaging-room.onrender.com','https://*.127.0.0.1']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(" ")
 
 
