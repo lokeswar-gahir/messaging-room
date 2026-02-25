@@ -42,9 +42,11 @@
   <input type="text" id="inputMessage" class="form-control mb-3" placeholder="Type a message" autofocus>
   <button id="sendSocket" class="btn btn-primary">Send</button>
   <div id="disconnected-msg-box"></div>
-  <hr/>
-  your current Device id: {{ device_id }}
+  <hr style="margin: 5px 0px;"/>
 {% endif %}
+<div style="margin-bottom: 7px;">
+  <small>Device id: {{ device_id }}</small>
+</div>
 
 
 <div class="message-box">
@@ -57,7 +59,7 @@
   <div class="mb-3">
   {% endif %}
       <small class="text-muted">{{ message.ip_address }}<br/>
-      {{ message.updated_at }}</small><br/>
+      {{ message.updated_at|date:"F j, Y, g:i a" }}</small><br/>
       <div>
         <b id="message-{{ message.id }}">{{ message.message }}</b>
         {% if message.ip_address == client_ip and open_status %}
@@ -124,7 +126,7 @@
     <small class="text-muted">${messageBundle.sender_ip}<br/>
     ${month[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${d.getHours() % 12 || 12}:${d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()} ${(d.getHours() >= 12) ? "p.m." : "a.m."}</small><br/>
     `
-    if(messageBundle.sender_ip == '{{ client_ip }}'){
+    if(messageBundle.sender_device_id == '{{ device_id }}'){
       newMessage.setAttribute('class', 'mb-3 align-right')
       newMessage.innerHTML +=`
     <div>
