@@ -104,7 +104,7 @@
   }
 
 
-  const ws = new WebSocket('ws://'+ window.location.host + '/ws/ac/' + '{{ link }}/')
+  const ws = new WebSocket('wss://'+ window.location.host + '/ws/ac/' + '{{ link }}/')
   ws.onopen = () =>{
     console.log('Socket Connected.')
   }
