@@ -42,9 +42,12 @@ class AsyncRoomSocket(AsyncConsumer):
         msgBundle = loads(event['text'])
         sender_ip = msgBundle['sender_ip']
         message = msgBundle['msg']
+        device_id = msgBundle['device_id']
         room_link = await database_sync_to_async(RoomLink.objects.get)(link = self.group_name)
+        if not room_link.is_open:
+            await self.close(code=4003)
         total_users = len(room_link.verified_ips.split(' '))
-        msg_obj = Messages(room_link = room_link, ip_address=sender_ip, message=message)
+        msg_obj = Messages(room_link = room_link, ip_address=sender_ip, message=message, device_id = device_id)
         await database_sync_to_async(msg_obj.save)()
         self.message_id = msg_obj.id
         await self.channel_layer.group_send(self.group_name, {
@@ -61,4 +64,5 @@ class AsyncRoomSocket(AsyncConsumer):
     async def websocket_disconnect(self, event):
         print('Roomsocket Disconnected.(Async)', event)
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
-        raise StopConsumer()
+        # raise StopConsumer()
+        await self.close(code=400)

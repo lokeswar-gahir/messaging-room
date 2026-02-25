@@ -23,6 +23,7 @@ class Messages(models.Model):
     ip_address = models.GenericIPAddressField()
     room_link = models.ForeignKey(RoomLink, on_delete=models.CASCADE, default='10')
     message = models.CharField(max_length=250)
+    device_id = models.CharField(max_length=40)
     recorded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -37,6 +38,8 @@ class Messages(models.Model):
 @receiver(post_save, sender=RoomLink)
 def firstMessageEntry(sender, instance, created, **kwargs):
     if created:
-        ip = instance.ip_address
-        Messages.objects.create(ip_address = ip, room_link=instance, message = instance.first_message)
+        ip_and_device:str = instance.ip_address
+        ip = ip_and_device.split('|')[0]
+        device = ip_and_device.split('|')[-1]
+        Messages.objects.create(ip_address = ip, room_link=instance, message = instance.first_message, device_id=device)
 

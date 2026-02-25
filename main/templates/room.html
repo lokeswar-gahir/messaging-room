@@ -43,6 +43,7 @@
   <button id="sendSocket" class="btn btn-primary">Send</button>
   <div id="disconnected-msg-box"></div>
   <hr/>
+  your current Device id: {{ device_id }}
 {% endif %}
 
 
@@ -50,7 +51,7 @@
 {% if fetched_messages %}
   {% for message in fetched_messages %}
 
-  {% if message.ip_address == client_ip %}
+  {% if message.device_id == device_id %}
   <div class="mb-3 align-right">
   {% else %}
   <div class="mb-3">
@@ -163,7 +164,8 @@
     else{
       ws.send(JSON.stringify({
         'sender_ip': '{{ client_ip }}',
-        'msg': inputMessage.value
+        'msg': inputMessage.value,
+        'device_id': '{{ device_id }}'
       }))
       inputMessage.value=''
     }
