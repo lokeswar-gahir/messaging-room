@@ -94,11 +94,11 @@ DATABASES = {
         "ENGINE": "mssql",
         "NAME": "Azure-sql-db-001",
         "HOST": "azure-sql-server-lgrs.database.windows.net",
-        "USER": os.getenv('APP_SERVICE_NAME') if DEBUG==False else "lgrs-sql-srv",
+        "USER": os.getenv('AZURE_SQL_USER_NAME'),
         'PORT': '1433',
         "OPTIONS": {
             "driver": "ODBC Driver 18 for SQL Server",
-            'extra_params': 'Authentication=ActiveDirectoryMsi;Encrypt=yes;TrustServerCertificate=no;' if DEBUG==False else ''
+            'extra_params': os.getenv('AZURE_SQL_EXTRA_PARAM')
         },
     }
 }
