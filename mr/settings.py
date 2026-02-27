@@ -94,7 +94,6 @@ DATABASES = {
         "ENGINE": "mssql",
         "NAME": "Azure-sql-db-001",
         "HOST": "azure-sql-server-lgrs.database.windows.net",
-        "USER": os.getenv('AZURE_SQL_USER_NAME'),
         'PORT': '1433',
         "OPTIONS": {
             "driver": "ODBC Driver 18 for SQL Server",
