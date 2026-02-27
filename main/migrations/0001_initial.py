@@ -19,9 +19,10 @@ class Migration(migrations.Migration):
                 ('ip_address', models.GenericIPAddressField()),
                 ('link', models.SlugField(unique=True)),
                 ('first_message', models.TextField()),
-                ('link_password', models.CharField(max_length=25)),
+                ('link_password', models.CharField(max_length=64)),
                 ('is_open', models.BooleanField(default=True)),
-                ('verified_ips', models.CharField(default='127.0.0.1', max_length=60)),
+                # ('verified_ips', models.CharField(default='127.0.0.1', max_length=60)),
+                ('verified_ips', models.CharField(max_length=512)),
             ],
         ),
         migrations.CreateModel(
@@ -29,11 +30,11 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('ip_address', models.GenericIPAddressField()),
-                ('message', models.CharField(max_length=250)),
-                ('device_id', models.CharField(max_length=40)),
+                ('message', models.CharField(max_length=512)),
+                ('device_id', models.CharField(max_length=64)),
                 ('recorded_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('room_link', models.ForeignKey(default='10', on_delete=django.db.models.deletion.CASCADE, to='main.roomlink')),
+                ('room_link', models.ForeignKey(default='1', on_delete=django.db.models.deletion.CASCADE, to='main.roomlink')),
             ],
             options={
                 'ordering': ['-recorded_at'],

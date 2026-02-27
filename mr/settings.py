@@ -88,8 +88,18 @@ ASGI_APPLICATION = 'mr.asgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+
+        "ENGINE": "mssql",
+        "NAME": "Azure-sql-db-001",
+        "HOST": "azure-sql-server-lgrs.database.windows.net",
+        "USER": os.getenv('APP_SERVICE_NAME') if DEBUG==False else "lgrs-sql-srv",
+        'PORT': '1433',
+        "OPTIONS": {
+            "driver": "ODBC Driver 18 for SQL Server",
+            'extra_params': 'Authentication=ActiveDirectoryMsi;Encrypt=yes;TrustServerCertificate=no;' if DEBUG==False else ''
+        },
     }
 }
 

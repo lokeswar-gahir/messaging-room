@@ -9,9 +9,9 @@ class RoomLink(models.Model):
     ip_address = models.GenericIPAddressField()
     link = models.SlugField(unique=True)
     first_message = models.TextField()
-    link_password = models.CharField(max_length=25)
+    link_password = models.CharField(max_length=64)
     is_open = models.BooleanField(default=True)
-    verified_ips = models.CharField(max_length=60, default='127.0.0.1')
+    verified_ips = models.CharField(max_length=512)
 
     def get_absolute_url(self):
         return reverse("main:room", kwargs={"link": self.link})
@@ -21,9 +21,9 @@ class RoomLink(models.Model):
 
 class Messages(models.Model):
     ip_address = models.GenericIPAddressField()
-    room_link = models.ForeignKey(RoomLink, on_delete=models.CASCADE, default='10')
-    message = models.CharField(max_length=250)
-    device_id = models.CharField(max_length=40)
+    room_link = models.ForeignKey(RoomLink, on_delete=models.CASCADE, default='1')
+    message = models.CharField(max_length=512)
+    device_id = models.CharField(max_length=64)
     recorded_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
