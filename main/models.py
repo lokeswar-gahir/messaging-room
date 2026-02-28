@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 # Create your models here.
 class RoomLink(models.Model):
-    ip_address = models.GenericIPAddressField()
+    ip_address = models.CharField(max_length=50)
     link = models.SlugField(unique=True)
     first_message = models.TextField()
     link_password = models.CharField(max_length=64)

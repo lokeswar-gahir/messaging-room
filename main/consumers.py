@@ -8,6 +8,7 @@ from channels.exceptions import StopConsumer
 from json import dumps, loads
 from .models import *
 from channels.db import database_sync_to_async
+from main.utils import animal_from_uuid
 
 # class RoomSocket(SyncConsumer):
 #     def websocket_connect(self, event):
@@ -56,7 +57,13 @@ class AsyncRoomSocket(AsyncConsumer):
         self.message_id = msg_obj.id
         await self.channel_layer.group_send(self.group_name, {
             'type': 'chat.message',
-            'text': dumps({'sender_ip': msgBundle['sender_ip'], 'sender_device_id': device_id, 'msg': msgBundle['msg'], 'message_id': self.message_id, 'total_users':total_users}),
+            'text': dumps({
+                'sender_ip': msgBundle['sender_ip'], 
+                'sender_device_id': device_id, 
+                'sender_animal': animal_from_uuid(device_id), 
+                'msg': msgBundle['msg'], 
+                'message_id': self.message_id, 
+                'total_users':total_users}),
         })
     
     async def chat_message(self, event):

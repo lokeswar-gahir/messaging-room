@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load animal_filters %}
 {% block styles %}
 <style>
   .custom-links:hover {
@@ -32,6 +33,7 @@
         Total Verified Users: <b id="total-users">{{ total_users }}</b> |
         {% if room_creater %}
         <button type="button" id="getVerifiedIpsBtn" class="btn" style="color:blue;">Show Users</button>
+        <button type="button" id="hideVerifiedIpsBtn" class="btn" style="color:blue; display:none;">Hide Users</button>
         {% endif %}
         <br>
         <div id="getVerifiedIpsMsgBox"></div>
@@ -58,11 +60,14 @@
   {% else %}
   <div class="mb-3">
   {% endif %}
-      <small class="text-muted">{{ message.ip_address }}<br/>
-      {{ message.updated_at|date:"F j, Y, g:i a" }}</small><br/>
+    <div>
+      {% comment %} <small class="text-muted">{{ message.ip_address }}</small> {% endcomment %}
+      <small class="text-muted" style='font-size: 14px;'>u_{{ message.device_id|get_animal_from_uuid }}</small>
+    </div>
+      
       <div>
         <b id="message-{{ message.id }}">{{ message.message }}</b>
-        {% if message.ip_address == client_ip and open_status %}
+        {% if message.device_id == device_id and open_status %}
         <form action="{% url 'main:updateMessage' link=link %}" method="post" style="display:none;" id="message-input-{{ message.id }}">
           {% csrf_token %}
           <input type="text" value="{{ message.message }}" name="updatedMessage" required>
@@ -71,6 +76,8 @@
         <a class="custom-links" onclick='enableEditMode({{ message.id }})' id="editBtn-{{ message.id }}">Edit</a>
         <a class="custom-links" style="display:none;" onclick='disableEditMode({{ message.id }})' id="cancelBtn-{{ message.id }}">Cancel</a>
         {% endif %}
+      <br/>
+      <small class="text-muted" style='font-size: 12px;'>{{ message.updated_at|date:"F j, Y, g:i a" }}</small>
       </div>
   </div>
   {% endfor %}
@@ -107,7 +114,9 @@
   }
 
 
-  const ws = new WebSocket('wss://'+ window.location.host + '/ws/ac/' + '{{ link }}/')
+
+  {% comment %} const ws = new WebSocket('ws://'+ window.location.host + '/ws/ac/' + '{{ link }}/') {% endcomment %}
+  const ws = new WebSocket({% if is_DEBUG %}'ws://'{% else %}'wss://'{% endif %}+ window.location.host + '/ws/ac/' + '{{ link }}/')
   ws.onopen = () =>{
     console.log('Socket Connected.')
   }
@@ -123,9 +132,10 @@
     const month = ["January","February","March","April","May","June","July","August","September","October","November","December"]
     
     newMessage.innerHTML = `
-    <small class="text-muted">${messageBundle.sender_ip}<br/>
-    ${month[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${d.getHours() % 12 || 12}:${d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()} ${(d.getHours() >= 12) ? "p.m." : "a.m."}</small><br/>
-    `
+    <div>
+    <small class="text-muted">u_${messageBundle.sender_animal}</small><br/>
+    <!--<small class="text-muted" style='font-size: 12px;'>${month[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${d.getHours() % 12 || 12}:${d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()} ${(d.getHours() >= 12) ? "p.m." : "a.m."}</small><br/> -->
+    </div>`
     if(messageBundle.sender_device_id == '{{ device_id }}'){
       newMessage.setAttribute('class', 'mb-3 align-right')
       newMessage.innerHTML +=`
@@ -136,8 +146,11 @@
           <input type="text" value="${messageBundle.msg}" name="updatedMessage" required>
           <button type="submit" class="btn btn-warning px-2 py-1 m-0" name="messageId" value="${messageBundle.message_id}">Update</button>
       </form>
-        <a class="custom-links" onclick='enableEditMode(${messageBundle.message_id})' id="editBtn-${messageBundle.message_id}">Edit</a>
-        <a class="custom-links" style="display:none;" onclick='disableEditMode(${messageBundle.message_id})' id="cancelBtn-${messageBundle.message_id}">Cancel</a>
+      <a class="custom-links" onclick='enableEditMode(${messageBundle.message_id})' id="editBtn-${messageBundle.message_id}">Edit</a>
+      <a class="custom-links" style="display:none;" onclick='disableEditMode(${messageBundle.message_id})' id="cancelBtn-${messageBundle.message_id}">Cancel</a>
+      <br/>
+      <small class="text-muted" style='font-size: 12px;'>${month[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}, ${d.getHours() % 12 || 12}:${d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes()} ${(d.getHours() >= 12) ? "p.m." : "a.m."}</small><br/>
+
     </div>`
     }
     else{
@@ -186,21 +199,34 @@
 
 {% endif %}
 {% if room_creater %}
-    const getIpBtn = document.querySelector('#getVerifiedIpsBtn')
+	const getIpBox = document.querySelector('#getVerifiedIpsMsgBox')
+	const getIpBtn = document.querySelector('#getVerifiedIpsBtn')
+	const hideIpBtn = document.querySelector('#hideVerifiedIpsBtn')
+
     getIpBtn.addEventListener('click', async ()=>{
-      const getIpBox = document.querySelector('#getVerifiedIpsMsgBox')
-      const ipResponse = await fetch("{% url 'main:getVerifiedIps' link=link %}")
-      const ipdata = await ipResponse.json()
-      if(ipdata.verifiedIps){
-        let VerifiedIpHTML = ""
-        ipdata.verifiedIps.forEach(element => {
-          VerifiedIpHTML += `<b>${element}</b><br>`
-        });
-        getIpBox.innerHTML = VerifiedIpHTML
-      }
-      else{
-        getIpBox.innerText=JSON.stringify(ipdata)
-      }
+		getIpBox.style.display = 'block'
+		getIpBox.innerHTML = 'Loading...'
+		getIpBtn.style.display='none'
+		hideIpBtn.style.display = 'inline'
+		const ipResponse = await fetch("{% url 'main:getVerifiedIps' link=link %}")
+		const ipdata = await ipResponse.json()
+		if(ipdata.verifiedIps){
+			let VerifiedIpHTML = ""
+			ipdata.verifiedIps.forEach(element => {
+			VerifiedIpHTML += `<b>${element}</b><br>`
+			});
+			getIpBox.innerHTML = VerifiedIpHTML
+		}
+		else{
+			getIpBox.innerText=JSON.stringify(ipdata)
+		}
+		
+    })
+
+    hideIpBtn.addEventListener('click', ()=>{
+		getIpBtn.style.display='inline'
+		hideIpBtn.style.display = 'none'
+		getIpBox.style.display = 'none'
     })
   {% endif %}
 </script>

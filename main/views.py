@@ -6,6 +6,7 @@ from django.utils.crypto import get_random_string
 from .utils import get_ip, get_or_create_device_id, add_new_ip_address_and_device_id
 from django.contrib import messages
 from django.http import JsonResponse
+from django.conf import settings
 # Create your views here.
 
 class Index(CreateView):
@@ -139,6 +140,7 @@ class Room(CreateView):
             context['room_creater'] = False
         context['open_status'] = self.current_room.is_open
         context['total_users'] = len(self.current_room.verified_ips.split("|")[-1].split(','))
+        context['is_DEBUG'] = settings.DEBUG
         # print('this is:',context['total_users'])
         return context
         

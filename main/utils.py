@@ -1,5 +1,6 @@
 #from socket import gethostname, gethostbyname
 from uuid import uuid4
+from hashlib import sha256
 
 def get_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -27,6 +28,14 @@ def add_new_ip_address_and_device_id(current_ip_and_device_id, new_ip, new_devic
 
     formatted_ip_and_device_id = ip_list + '|' + device_list
     return formatted_ip_and_device_id
+
+def animal_from_uuid(uuid_value):
+    ANIMALS = [
+        "Lion", "Tiger", "Wolf", "Fox", "Bear",
+        "Eagle", "Falcon", "Panda", "Otter", "Dolphin"
+    ]
+    h = sha256(str(uuid_value).encode()).hexdigest()
+    return ANIMALS[int(h, 16) % len(ANIMALS)]
 
 # if __name__ == '__main__':
     # print(add_new_ip_address_and_device_id('some_ip|some_devide_id', 'new_ip', 'new_device_id'))
