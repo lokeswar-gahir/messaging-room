@@ -47,7 +47,7 @@
   <hr style="margin: 5px 0px;"/>
 {% endif %}
 <div style="margin-bottom: 7px;">
-  <small>Device id: {{ device_id }}, Debug: {{ is_DEBUG }}</small>
+  <small>Device id: {{ device_id }}</small>
 </div>
 
 
@@ -116,7 +116,11 @@
 
 
   {% comment %} const ws = new WebSocket('ws://'+ window.location.host + '/ws/ac/' + '{{ link }}/') {% endcomment %}
-  const ws = new WebSocket({% if is_DEBUG %}'ws://'{% else %}'wss://'{% endif %}+ window.location.host + '/ws/ac/' + '{{ link }}/')
+  const ws = new WebSocket(
+	(location.protocol === "https:" ? "wss://" : "ws://")
+	+ window.location.host 
+	+ '/ws/ac/' 
+	+ '{{ link }}/')
   ws.onopen = () =>{
     console.log('Socket Connected.')
   }
